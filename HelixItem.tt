@@ -1,0 +1,67 @@
+﻿<#@ template language="C#" #>
+<#@ output encoding="utf-8"#>
+
+<#@ include file="Helpers.tt" #>
+<#@ include file="StringExtensions.tt" #>
+<#@ include file="GeneralExtensions.tt" #>
+<#@ include file="Inflector.tt" #>
+
+<#@ assembly name="System.Core.dll" #>
+
+<#@ import namespace="System" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="HedgehogDevelopment.SitecoreProject.VSIP.CodeGeneration.Models" #>
+
+<#@ parameter name="Model" type="HedgehogDevelopment.SitecoreProject.VSIP.CodeGeneration.Models.SitecoreItem" #>
+<#@ parameter name="DefaultNamespace" type="System.String" #>
+
+<#
+// we only act on Templates
+SitecoreTemplate template = Model as SitecoreTemplate;
+if (template == null)
+{
+	return "";
+}
+#>
+
+namespace <#= DefaultNamespace #>
+{
+  /// <summary>
+  /// <#= template.Name #>
+  /// <para>Path: <#= template.Path #></para>	
+  /// <para>ID: <#= template.ID.ToString() #></para>	
+  /// </summary>
+  public partial class Templates
+  {
+    public static class <#= AsClassName(template.Name) #>
+    {
+      /// <summary>
+      /// The Template ID for <#= template.Path #>
+      /// </summary>
+      public static readonly ID ID = new ID("{<#= template.ID.ToString().ToUpper() #>}");
+
+      public static class Fields 
+      {
+<#foreach(SitecoreField field in GetFieldsForTemplate(template, false)) { #>
+        
+        /// <summary>
+        /// The <#=field.Name#> field.
+        /// <para>Description: <#= GetValue(field.SitecoreFields, "__Short description") #></para>
+        /// <para>Field Type: <#=field.Type#></para>		
+        /// <para>Field ID: <#=field.ID.ToString()#></para>
+        /// <para>Shared: <#= GetValue(field.SitecoreFields, "Shared") #></para>
+        /// <para>Unversioned: <#= GetValue(field.SitecoreFields, "Unversioned") #></para>
+        /// <para>Default Value: <#= GetValue(field.SitecoreFields, "Default value") #></para>
+        /// </summary>
+        public static class <#= GetPropertyName(field) #>
+        {
+          public static readonly ID ID = new ID("{<#= field.ID.ToString().ToUpper() #>}");
+          public static readonly string FieldName = "<#=field.Name#>";
+        }
+<#}#>
+      }
+    }
+  }
+}
